@@ -1,0 +1,14 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Database configuration
+*.dsn
+*.db
+*.sqlite3
+
+# Misc
+*.log
+*.bak
+*.tmp

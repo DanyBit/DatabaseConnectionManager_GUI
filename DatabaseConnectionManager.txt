@@ -1,0 +1,88 @@
+import pyodbc
+import tkinter as tk
+from tkinter import messagebox
+
+# Funzione per connettersi utilizzando ODBC
+def connect_to_odbc(dsn, username, password):
+    conn_str = f"DSN={dsn};UID={username};PWD={password};"
+    conn = pyodbc.connect(conn_str)
+    return conn
+
+# Funzione per prorogare elementi (es. voucher)
+def proroga_elemento(conn, codice, nuova_data, table_name, column_name, condition_column):
+    query = f"UPDATE {table_name} SET {column_name} = '{nuova_data}', last_mod = GETDATE() WHERE {condition_column} = '{codice}'"
+    cursor = conn.cursor()
+    cursor.execute(query)
+    conn.commit()
+
+# Funzione per mostrare una finestra di successo
+def show_success_message(nuova_data, tipo):
+    messagebox.showinfo("Successo", f"{tipo} prorogato/a con successo fino al {nuova_data}")
+
+# Funzione principale
+def main():
+    # Creazione della finestra principale
+    root = tk.Tk()
+    root.title("Proroga Elementi")
+
+    # Etichette e campi di input
+    tk.Label(root, text="Indirizzo IP del database:").grid(row=0, column=0, padx=10, pady=10)
+    ip_entry = tk.Entry(root)
+    ip_entry.grid(row=0, column=1)
+
+    tk.Label(root, text="Nome file ODBC:").grid(row=1, column=0, padx=10, pady=10)
+    dsn_entry = tk.Entry(root)
+    dsn_entry.grid(row=1, column=1)
+
+    tk.Label(root, text="Nome Utente:").grid(row=2, column=0, padx=10, pady=10)
+    username_entry = tk.Entry(root)
+    username_entry.grid(row=2, column=1)
+
+    tk.Label(root, text="Password:").grid(row=3, column=0, padx=10, pady=10)
+    password_entry = tk.Entry(root, show="*")  # Mostra asterischi per la password
+    password_entry.grid(row=3, column=1)
+
+    tk.Label(root, text="Codice Elemento:").grid(row=4, column=0, padx=10, pady=10)
+    codice_entry = tk.Entry(root)
+    codice_entry.grid(row=4, column=1)
+
+    tk.Label(root, text="Nuova data di scadenza (YYYYMMDD):").grid(row=5, column=0, padx=10, pady=10)
+    nuova_data_entry = tk.Entry(root)
+    nuova_data_entry.grid(row=5, column=1)
+
+    # Radio buttons per scegliere tra opzioni diverse
+    tipo_var = tk.StringVar(value="opzione1")
+    tk.Radiobutton(root, text="Proroga Opzione 1", variable=tipo_var, value="opzione1").grid(row=6, column=0, padx=10, pady=5)
+    tk.Radiobutton(root, text="Proroga Opzione 2", variable=tipo_var, value="opzione2").grid(row=6, column=1, padx=10, pady=5)
+
+    # Funzione per gestire il click del pulsante
+    def on_submit():
+        ip = ip_entry.get()
+        dsn = dsn_entry.get()
+        username = username_entry.get()
+        password = password_entry.get()
+        codice = codice_entry.get()
+        nuova_data = nuova_data_entry.get()
+
+        try:
+            conn = connect_to_odbc(dsn, username, password)
+            tipo = tipo_var.get()
+            if tipo == "opzione1":
+                proroga_elemento(conn, codice, nuova_data, "TABELLA_OPZIONE1", "COLONNA_SCADENZA", "COLONNA_CODICE")
+            else:
+                proroga_elemento(conn, codice, nuova_data, "TABELLA_OPZIONE2", "COLONNA_SCADENZA", "COLONNA_CODICE")
+            show_success_message(nuova_data, tipo.capitalize())
+        except Exception as e:
+            messagebox.showerror("Eh no Poldo!", "Credenziali non corrette o altro errore")
+
+    submit_button = tk.Button(root, text="Proroga", command=on_submit)
+    submit_button.grid(row=7, columnspan=2, pady=10)
+
+    powered_label = tk.Label(root, text="Powered by _Danybit_", font=("Arial", 10), fg="#B0B0B0")  # Grigio chiaro per simulare trasparenza
+    powered_label.grid(row=8, column=1, padx=10, pady=10, sticky="se")  # Posizione in basso a destra
+
+    # Avvio della finestra principale
+    root.mainloop()
+
+if __name__ == "__main__":
+    main()
